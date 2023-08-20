@@ -1,3 +1,10 @@
+# Master The Legacy Project
+
+## Overview
+
+Welcome to the Master The Legacy Project! In this collaborative effort, two enthusiastic colleagues come together to tackle the challenge of transforming a dated legacy infrastructure into a cutting-edge next-generation environment. This project is designed not only to learn and practice new technologies but also to apply best practices in the field of DevOps, Cloud Engineering, and Site Reliability Engineering.
+
+
 ### Branch strategy
 
 #### Release flow
