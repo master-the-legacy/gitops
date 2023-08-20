@@ -1,0 +1,27 @@
+name: vanish
+run-name: "Destroying in case we forgot"
+on:
+  schedule:
+    - cron: "0 23 * * *"
+
+env: 
+  ROLE_TO_ASSUME: arn:aws:iam::760772947412:role/cd
+  AWS_REGION: us-east-1
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  scheduled-destroy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+            role-to-assume: ${{ env.ROLE_TO_ASSUME }}
+            role-session-name: cd
+            aws-region: ${{ env.AWS_REGION  }}
+      - uses: hashicorp/setup-terraform@v2
+      - run: ./.github/scripts/destroy-all.sh 
+        id: destroy-all

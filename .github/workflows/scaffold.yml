@@ -1,0 +1,70 @@
+name: scaffold-infrastructure
+run-name: ${{ github.actor }}
+
+on: 
+    pull_request:
+    push:
+      paths:
+        - "infrastructure/*"
+    workflow_dispatch:
+        inputs:
+            environment:
+                description: 'Environment, this will be used as workspace'
+                required: true
+                default: 'dev'
+                type: choice
+                options:
+                    - dev
+                    - staging
+                    - prod
+            action:
+              description: "Chose between create or destroy the environment"
+              required: true
+              type: choice
+              options:
+                - create
+                - destroy
+                    
+env:
+    ROLE_TO_ASSUME: arn:aws:iam::760772947412:role/cd
+    AWS_REGION: us-east-1
+
+
+permissions:
+    id-token: write
+    contents: read
+
+jobs:
+    scaffold:
+        runs-on: ubuntu-latest
+        env:
+            WORKSPACE: ${{ inputs.environment  }}
+        steps:
+            - uses: actions/checkout@v3
+            - name: configure aws credentials
+              uses: aws-actions/configure-aws-credentials@v2
+              with:
+                  role-to-assume: ${{ env.ROLE_TO_ASSUME }}
+                  role-session-name: cd
+                  aws-region: ${{ env.AWS_REGION  }}
+            - uses: hashicorp/setup-terraform@v2
+            - uses: ./.github/workflows/terraform-init.yml
+              with:
+                fmt-check: ${{ github.branch != 'main' }}
+            - name: terraform-ws-select
+              id: workspace
+              run: terraform workspace select $ENVIRONMENT
+            - name: terraform-plan
+              id: plan
+              if: inputs.action == 'create'
+              run: terraform plan -no-color -out plan.out
+            - run: echo "terraform-plan\n${{ steps.plan.outputs.stdout  }}"
+            - name: terraform-apply
+              id: apply
+              if: github.branch == 'main' && inputs.action == 'create'
+              run: terraform apply --auto-approve plan.out
+            - name: terraform-detroy
+              id: destroy
+              if: github.branch == 'main' && inputs.action ==  'destroy'
+              run: terraform destroy --auto-approve plan.out
+
