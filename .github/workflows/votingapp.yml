@@ -1,0 +1,53 @@
+name: votingapp-ci
+run-name: ${{ github.actor }}
+
+on:
+  # TODO - Run on push
+  workflow_dispatch:
+    inputs:
+      app:
+        description: "Which service you do wanna build?"
+        required: true
+        type: choice
+        options:
+          - votingapp-vote
+          - votingapp-worker
+          - votingapp-redis
+          - votingapp-db
+          - votingapp-results
+
+env:
+  # TODO - Create IAM Role
+  ROLE_TO_ASSUME: arn:aws:iam::760772947412:role/github-actions/gh-oidc
+  AWS_REGION: us-east-1
+  ECR_REPO: legacy-ecr-repo
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - 
+        name: Git Checkout
+        uses: actions/checkout@v3
+      - 
+        name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ env.ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+      - 
+        name: Login to Amazon ECR Private
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+      - 
+        # TODO - Versioning Tags
+        name: Build and Push to AWS ECR
+        run: |
+          docker buildx build --push --platform linux/amd64 \
+          --tag ${{ env.ECR_REPO }}/${{ inputs.app }}:latest applications/${{ inputs.app }}
+
+# TODO - Create bump-image Job
