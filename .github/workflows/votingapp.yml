@@ -2,7 +2,9 @@ name: votingapp-ci
 run-name: ${{ github.actor }}
 
 on:
-  # TODO - Run on push
+  push:
+    paths:
+      - "applications/**"
   workflow_dispatch:
     inputs:
       app:
@@ -17,22 +19,23 @@ on:
           - votingapp-results
 
 env:
-  # TODO - Create IAM Role
   ROLE_TO_ASSUME: arn:aws:iam::760772947412:role/github-actions/gh-oidc
   AWS_REGION: us-east-1
   ECR_REPO: legacy-ecr-repo
 
-permissions:
-  id-token: write
-  contents: read
 
 jobs:
   build:
+    permissions:
+      id-token: write
+      contents: write
     runs-on: ubuntu-latest
     steps:
       - 
         name: Git Checkout
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
       - 
         name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -43,11 +46,38 @@ jobs:
         name: Login to Amazon ECR Private
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
+        with:
+          mask-password: "true"
+      -   
+        # TO-FIX: If the previous commit changed another votingapp microservice, this step will fail.
+        # TO-FIX: It will fail if the commit that changed the microservice is not the lastest commit.
+        name: Get Service to Build
+        if: github.event_name == 'push'
+        id: service-id
+        run: |
+          echo "service-name=$(git diff --name-only HEAD~1 | grep -o '^applications/[^/]*' | cut -d "/" -f2 | head -1 )" >> $GITHUB_OUTPUT
       - 
-        # TODO - Versioning Tags
+        # This step needs to give Read and Write permissions to GITHUB_TOKEN when running workflows in this repository
+        name: Create new Repo Tag
+        id: tag_version
+        uses: mathieudutour/github-tag-action@v6.1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+      - 
         name: Build and Push to AWS ECR
+        if: github.event_name == 'push'
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
           docker buildx build --push --platform linux/amd64 \
-          --tag ${{ env.ECR_REPO }}/${{ inputs.app }}:latest applications/${{ inputs.app }}
+          --tag ${{ env.REGISTRY }}/${{ steps.service-id.outputs.service-name }}:${{ steps.tag_version.outputs.new_tag }} applications/${{ steps.service-id.outputs.service-name }}
+      - 
+        name: Build and Push to AWS ECR
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          docker buildx build --push --platform linux/amd64 \
+          --tag ${{ env.REGISTRY }}/${{ inputs.app }}:${{ steps.tag_version.outputs.new_tag }} applications/${{ inputs.app }}
 
 # TODO - Create bump-image Job
