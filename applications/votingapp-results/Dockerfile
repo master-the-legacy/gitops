@@ -1,5 +1,5 @@
 FROM node:18-slim
-
+#
 # Tini as an alternative to tradicional linux process manager "init". https://github.com/krallin/tini
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
