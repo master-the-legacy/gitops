@@ -1,0 +1,71 @@
+on: 
+  workflow_call:
+    inputs:
+      apply:
+        default: false
+        description: "Wheter apply or not"
+        required: false
+        type: boolean
+      destroy:
+        default: false
+        description: "Whether destroy or not"
+        required: false
+        type: boolean
+      fmt-check:
+        default: false
+        description: "Wheter or not check for fomatting"
+        required: false
+        type: boolean
+      workspace:
+        required: true
+        description: "Workspace to be selected. Make sure that the workspace exists before passing it"
+        type: string
+      working-dir:
+        required: true
+        description: "Working Directory"
+        type: string
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-dir }}
+    env:
+      WORKSPACE: ${{ inputs.workspace }}
+      DESTROY: ${{ inputs.destroy }}
+    steps:
+
+      - uses: actions/checkout@v3
+        with:
+          ref: feature/gh-oidc
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials
+        with:
+          role-to-assume: ${{ inputs.role_to_assume }}
+          role-session-name: cd
+          aws-region: us-east-1
+      - uses: hashicorp/setup-terraform
+      - name: terraform-fmt
+        id: fmt
+        if: inputs.fmt-check == 'true'
+        run: terraform fmt -check
+      - name: terraform-init
+        id: init
+        run: terraform init
+      - name: terraform-validate
+        id: validate
+        run: terraform validate -no-color
+      - name: terraform-ws-select
+        id: workspace
+        run: terraform workspace select $WORKSPACE
+      - name: terraform-plan
+        id: plan
+        run: '[[ "$DESTROY" == "true" ]] && terraform plan -no-color -out plan.out -destroy || terraform plan -no-color -out plan.out'
+      - name: output
+        id: out
+        run: echo "terraform plan\n ${{ steps.plan.outputs.stdout }}" >> $GITHUB_OUTPUT
+      - name: terraform-apply
+        id: apply
+        if: ${{ inputs.apply == 'true' }}
+        run: '[[ "$DESTROY" == "true" ]] && terraform destroy --auto-approve plan.out || terraform apply --auto-approve plan.out'
