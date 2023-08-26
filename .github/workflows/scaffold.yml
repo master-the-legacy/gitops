@@ -2,9 +2,6 @@ name: scaffold-infrastructure
 run-name: ${{ github.actor }}
 
 on: 
-    push:
-      paths:
-        - "infrastructure/*"
     workflow_dispatch:
         inputs:
             environment:
@@ -25,7 +22,7 @@ on:
                 - destroy
                     
 env:
-    ROLE_TO_ASSUME: arn:aws:iam::760772947412:role/github-actions/gh-oidc
+    # ROLE_TO_ASSUME: arn:aws:iam::760772947412:role/github-actions/gh-oidc
     AWS_REGION: us-east-1
 
 
@@ -34,12 +31,12 @@ permissions:
     contents: read
 
 jobs:
-    scaffold:
-      uses: ./.github/workflows/terraform.yml
-      with:
-        apply: ${{ github.branch == 'main' }}
-        destroy: ${{ inputs.action == 'destroy' }}
-        fmt-check: false
-        workspace: ${{ inputs.workspace  }}
-        working-dir: infrastructure
-
+  scaffold:
+    uses: ./.github/workflows/terraform.yml
+    with:
+      apply: ${{ github.ref_name == 'main' }}
+      destroy: ${{ inputs.action == 'destroy' }}
+      fmt-check: false
+      workspace: ${{ inputs.environment  }}
+      working-dir: infrastructure/scaffold
+      role-to-assume: arn:aws:iam::760772947412:role/github-actions/gh-oidc

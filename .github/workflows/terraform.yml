@@ -1,4 +1,5 @@
-on: 
+name: terraform
+on:
   workflow_call:
     inputs:
       apply:
@@ -24,6 +25,10 @@ on:
         required: true
         description: "Working Directory"
         type: string
+      role-to-assume:
+        required: true
+        description: "Role to assume"
+        type: string
 
 jobs:
   terraform:
@@ -35,17 +40,14 @@ jobs:
       WORKSPACE: ${{ inputs.workspace }}
       DESTROY: ${{ inputs.destroy }}
     steps:
-
       - uses: actions/checkout@v3
-        with:
-          ref: feature/gh-oidc
       - name: configure aws credentials
-        uses: aws-actions/configure-aws-credentials
+        uses: aws-actions/configure-aws-credentials@v3
         with:
-          role-to-assume: ${{ inputs.role_to_assume }}
+          role-to-assume: ${{ inputs.role-to-assume }}
           role-session-name: cd
           aws-region: us-east-1
-      - uses: hashicorp/setup-terraform
+      - uses: hashicorp/setup-terraform@v2
       - name: terraform-fmt
         id: fmt
         if: inputs.fmt-check == 'true'
@@ -62,10 +64,7 @@ jobs:
       - name: terraform-plan
         id: plan
         run: '[[ "$DESTROY" == "true" ]] && terraform plan -no-color -out plan.out -destroy || terraform plan -no-color -out plan.out'
-      - name: output
-        id: out
-        run: echo "terraform plan\n ${{ steps.plan.outputs.stdout }}" >> $GITHUB_OUTPUT
       - name: terraform-apply
         id: apply
-        if: ${{ inputs.apply == 'true' }}
+        if: ${{ inputs.apply }}
         run: '[[ "$DESTROY" == "true" ]] && terraform destroy --auto-approve plan.out || terraform apply --auto-approve plan.out'
