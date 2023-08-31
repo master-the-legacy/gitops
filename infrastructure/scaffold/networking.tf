@@ -1,4 +1,26 @@
 resource "aws_vpc" "legacy-vpc" {
-  cidr_block       = "10.0.0.0/16"
-  instance_tenancy = "default"
+  cidr_block         = "10.0.0.0/16"
+  instance_tenancy   = "default"
+  enable_dns_support = true # Defaults to true, but for reference since EKS nodes needs this to be true in order to work properly
+
+}
+
+# EKS subnets
+# Need to be at least two subnets in two different AZs
+resource "aws_subnet" "eks_subnet_1" {
+  vpc_id            = aws_vpc.legacy-vpc.id
+  cidr_block        = "10.0.1.0/24"
+  availability_zone = "us-east-1a"
+  tags = {
+    "kubernetes.io/role/internal-elb" = 1 # In order to have LBs in this subnet
+  }
+}
+
+resource "aws_subnet" "eks_subnet_2" {
+  vpc_id            = aws_vpc.legacy-vpc.id
+  cidr_block        = "10.0.2.0/24"
+  availability_zone = "us-east-1b"
+  tags = {
+    "kubernetes.io/role/internal-elb" = 1
+  }
 }
