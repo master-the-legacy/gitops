@@ -60,7 +60,7 @@ jobs:
         run: terraform validate
       - name: terraform-ws-select
         id: workspace
-        run: terraform workspace select $WORKSPACE
+        run: terraform workspace select -or-create $WORKSPACE
       - name: terraform-plan
         id: plan
         run: '[[ "$DESTROY" == "true" ]] && terraform plan -destroy || terraform plan -out plan.out'
