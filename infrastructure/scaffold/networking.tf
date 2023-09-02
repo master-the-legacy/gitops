@@ -7,20 +7,9 @@ resource "aws_vpc" "legacy-vpc" {
 
 # EKS subnets
 # Need to be at least two subnets in two different AZs
-resource "aws_subnet" "eks_subnet_1" {
+resource "aws_subnet" "eks_subnets" {
+  count = 2
   vpc_id            = aws_vpc.legacy-vpc.id
-  cidr_block        = "10.0.1.0/24"
+  cidr_block        = "10.0.${count.index+1}.0/24"
   availability_zone = "us-east-1a"
-  tags = {
-    "kubernetes.io/role/internal-elb" = 1 # In order to have LBs in this subnet
-  }
-}
-
-resource "aws_subnet" "eks_subnet_2" {
-  vpc_id            = aws_vpc.legacy-vpc.id
-  cidr_block        = "10.0.2.0/24"
-  availability_zone = "us-east-1b"
-  tags = {
-    "kubernetes.io/role/internal-elb" = 1
-  }
 }
