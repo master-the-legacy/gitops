@@ -60,7 +60,7 @@ jobs:
         run: terraform validate -no-color
       - name: terraform-ws-select
         id: workspace
-        run: terraform workspace select $WORKSPACE
+        run: terraform workspace select -or-create $WORKSPACE
       - name: terraform-plan
         id: plan
         run: '[[ "$DESTROY" == "true" ]] && terraform plan -no-color -out plan.out -destroy || terraform plan -no-color -out plan.out'
