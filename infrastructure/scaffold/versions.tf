@@ -9,13 +9,14 @@ terraform {
 
   backend "s3" {
     bucket = "master-the-legacy"
-    key    = "tf-states/infrastructure/terraform.tfstate"
+    key    = "tf-states/infrastructure/scaffold/terraform.tfstate"
     region = "us-east-1"
   }
 
 }
 
 provider "aws" {
+  region = "us-east-1"
   default_tags {
     tags = {
       project = var.project
