@@ -1,11 +1,12 @@
 name: vanish
 run-name: "Destroying in case we forgot"
 on:
+  # push: # Use for testing, remove afterwards
   schedule:
     - cron: "0 23 * * *"
 
 env: 
-  ROLE_TO_ASSUME: arn:aws:iam::760772947412:role/cd
+  ROLE_TO_ASSUME: arn:aws:iam::760772947412:role/github-actions/gh-oidc
   AWS_REGION: us-east-1
 
 permissions:
@@ -14,14 +15,14 @@ permissions:
 
 jobs:
   scheduled-destroy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: configure aws credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-            role-to-assume: ${{ env.ROLE_TO_ASSUME }}
-            role-session-name: cd
-            aws-region: ${{ env.AWS_REGION  }}
-      - uses: hashicorp/setup-terraform@v2
-      - run: ./.github/scripts/destroy-all.sh 
-        id: destroy-all
+    strategy:
+      matrix:
+        environment: ["dev", "staging", "prod"]
+    uses: ./.github/workflows/terraform.yml
+    with:
+      apply: true
+      destroy: true
+      fmt-check: false
+      workspace: ${{ matrix.environment }}
+      working-dir: infrastructure/scaffold
+      role-to-assume: arn:aws:iam::760772947412:role/github-actions/gh-oidc

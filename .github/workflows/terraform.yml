@@ -57,14 +57,14 @@ jobs:
         run: terraform init
       - name: terraform-validate
         id: validate
-        run: terraform validate -no-color
+        run: terraform validate
       - name: terraform-ws-select
         id: workspace
         run: terraform workspace select $WORKSPACE
       - name: terraform-plan
         id: plan
-        run: '[[ "$DESTROY" == "true" ]] && terraform plan -no-color -out plan.out -destroy || terraform plan -no-color -out plan.out'
+        run: '[[ "$DESTROY" == "true" ]] && terraform plan -destroy || terraform plan -out plan.out'
       - name: terraform-apply
         id: apply
         if: ${{ inputs.apply }}
-        run: '[[ "$DESTROY" == "true" ]] && terraform destroy --auto-approve plan.out || terraform apply --auto-approve plan.out'
+        run: '[[ "$DESTROY" == "true" ]] && terraform destroy --auto-approve || terraform apply --auto-approve plan.out'
