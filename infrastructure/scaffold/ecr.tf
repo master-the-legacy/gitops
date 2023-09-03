@@ -6,4 +6,8 @@ resource "aws_ecr_repository" "legacy-ecr-repo" {
   image_scanning_configuration {
     scan_on_push = true
   }
+
+  tags = {
+    product = "master-the-legacy"
+  }
 }
