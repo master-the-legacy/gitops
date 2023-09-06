@@ -36,6 +36,8 @@ fix/specific-fix-name---------------/
 
 ```
 
+### Infrastructure
+
 #### Scaffold pipeline
 
 This repository contains a scaffold pipeline in order to easily create or destroy the environment.
@@ -43,3 +45,38 @@ This repository contains a scaffold pipeline in order to easily create or destro
 To create the environment execute the `scaffold` workflow from main chosing the create option. To destroy use the destroy option.
 
 The is also a `vanish` workflow that you destroy everything at the determined chosen time by the schedule configuration
+
+#### Local terraform
+
+To plan apply using locally terraform follow the basic terraform workflow, example:
+
+```bash
+# For any modification, always format
+terraform fmt
+
+# Init
+terraform init
+
+# Validate the code
+terraform validate
+
+# Select the desired workspace
+terraform workspace select <environment>
+
+# Plan
+terraform plan -out plan.out # TBD, in order to differ environments --var-file=<env>.tfvars. Is there a way we can use terraform.workspace to do more complex logic ?
+
+# Apply
+terraform apply plan.out # TBD, --var-file=<env>.tfvars
+```
+
+### EKS
+
+#### Connecting to the cluster
+
+Configuring kubernetes context
+```bash
+aws eks update-kubeconfig --name "<env>-master-cluster"
+```
+
+To test connection `kubectl get svc`
