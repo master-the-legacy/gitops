@@ -1,4 +1,4 @@
-### EKS Control Plane ###
+############## EKS Control Plane ####################
 data "aws_iam_policy_document" "assume_eks_role" {
   statement {
     effect = "Allow"
@@ -29,3 +29,41 @@ resource "aws_iam_role_policy_attachment" "AmazonEKSClusterPolicy" {
 #   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSVPCResourceController"
 #   role       = aws_iam_role.example.name
 # }
+
+
+################# EKS WORKER NODES ROLE ###################
+data "aws_iam_policy_document" "assume_eks-worker_role" {
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["ec2.amazonaws.com"]
+    }
+    actions = ["sts:AssumeRole"]
+  }
+}
+
+resource "aws_iam_role" "legacy_eks-worker_role" {
+  name               = "legacy-eks-worker-role"
+  assume_role_policy = data.aws_iam_policy_document.assume_eks-worker_role.json
+}
+
+resource "aws_iam_role_policy_attachment" "AmazonEKSWorkerNodePolicy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
+  role       = aws_iam_role.legacy_eks-worker_role.name
+}
+
+resource "aws_iam_role_policy_attachment" "AmazonEC2ContainerRegistryReadOnly" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
+  role       = aws_iam_role.legacy_eks-worker_role.name
+}
+
+# https://docs.aws.amazon.com/eks/latest/userguide/cni-iam-role.html
+# You can attach the policy to the Amazon EKS node IAM role, or to a separate IAM role. 
+# We recommend that you assign it to a separate role.
+# TODO: Create a separate role for this policy
+resource "aws_iam_role_policy_attachment" "AmazonEKS_CNI_Policy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+  role       = aws_iam_role.legacy_eks-worker_role.name
+}
