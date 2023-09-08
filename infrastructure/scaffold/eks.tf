@@ -25,9 +25,10 @@ resource "aws_eks_cluster" "eks" {
   }
 
   vpc_config {
-    subnet_ids             = [for az in local.eks_availability_zones : aws_subnet.eks_subnets[az].id] # You can't change which subnets you want to use after cluster creation.
-    endpoint_public_access = true                                                                     # Enable EKS public API server endpoint
-    public_access_cidrs    = ["0.0.0.0/0"]                                                            # EKS API server endpoint source IP, could be used to allow only VPN
+    subnet_ids              = [for az in local.eks_availability_zones : aws_subnet.eks_subnets[az].id] # You can't change which subnets you want to use after cluster creation.
+    endpoint_public_access  = true
+    endpoint_private_access = true          # Enable EKS public API server endpoint
+    public_access_cidrs     = ["0.0.0.0/0"] # EKS API server endpoint source IP, could be used to allow only VPN
     # security_group_ids = [] TODO: make the cluster private
   }
 
