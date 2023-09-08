@@ -67,3 +67,8 @@ resource "aws_iam_role_policy_attachment" "AmazonEKS_CNI_Policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
   role       = aws_iam_role.legacy_eks-worker_role.name
 }
+
+# TODO: Import SSM roles for terraform
+# If the instance is private and do not have internet access through NAT or internet gateway
+# We need to enable the instance to some endpoints
+# Reference: https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-getting-started-privatelink.html
