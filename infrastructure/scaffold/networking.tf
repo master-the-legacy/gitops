@@ -21,3 +21,22 @@ resource "aws_subnet" "eks_subnets" {
   cidr_block        = "10.0.${index(tolist(local.eks_availability_zones), each.value) + 1}.0/24"
   availability_zone = each.value # Ensure multi zones
 }
+
+
+# VPC Endpoints
+resource "aws_vpc_endpoint" "ec2" {
+  vpc_id            = aws_vpc.legacy-vpc.id
+  service_name      = "com.amazonaws.us-east-1.ec2" ## Allow instances in the same VPC and subnet to communicate with ec2 endpoint, necessary to join EKS cluster
+  vpc_endpoint_type = "Interface"
+
+  subnet_ids = [for az in local.eks_availability_zones : aws_subnet.eks_subnets[az].id]
+
+  private_dns_enabled = true
+
+  tags = {
+    Name = "vpce-ec2"
+  }
+}
+
+# Import the rest of the vpc endpoints
+
