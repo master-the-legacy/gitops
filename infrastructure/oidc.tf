@@ -6,7 +6,7 @@ module "gh_oidc" {
   source = "github.com/philips-labs/terraform-aws-github-oidc?ref=v0.7.1"
 
   openid_connect_provider_arn = module.oidc_provider.openid_connect_provider.arn
-  repo                        = "master-the-legacy/master-the-legacy"
+  repo                        = "master-the-legacy/gitops"
   role_name                   = "gh-oidc"
 
   # optional
@@ -16,11 +16,11 @@ module "gh_oidc" {
     data.aws_iam_policy.adm.arn
   ]
   # add extra conditions, will be merged with the default_conditions
-  # conditions = [{
-  #   test     = "StringLike"
-  #   variable = "token.actions.githubusercontent.com:sub"
-  #   values   = [
-  #     "repo:master-the-legacy/master-the-legacy:pull_request",
-  #   ]
-  # }]
+  conditions = [{
+    test     = "StringLike"
+    variable = "token.actions.githubusercontent.com:sub"
+    values = [
+      "repo:master-the-legacy/votingapp-results:*",
+    ]
+  }]
 }
