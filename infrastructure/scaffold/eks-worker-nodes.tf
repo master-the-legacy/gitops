@@ -1,4 +1,5 @@
 # Two node groups, one per subnet (The two existing subnets are in different AZs)
+# If the nodes are in private subnets without NAT or internet gateway, it need to reach EKS API somehow https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html
 resource "aws_eks_node_group" "node-group-0" {
   cluster_name    = resource.aws_eks_cluster.eks.name
   node_group_name = "master-node-group-0"
