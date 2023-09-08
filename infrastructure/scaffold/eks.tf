@@ -35,7 +35,6 @@ resource "aws_eks_cluster" "eks" {
   # Otherwise, EKS will not be able to properly delete EKS managed EC2 infrastructure such as Security Groups.
   depends_on = [
     aws_iam_role_policy_attachment.AmazonEKSClusterPolicy,
-    aws_ecr_repository.legacy-ecr-repo,
     #aws_iam_role_policy_attachment.example-AmazonEKSVPCResourceController
   ]
 
