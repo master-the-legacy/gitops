@@ -59,6 +59,13 @@ resource "aws_iam_role_policy_attachment" "AmazonEC2ContainerRegistryReadOnly" {
   role       = aws_iam_role.legacy_eks-worker_role.name
 }
 
+resource "aws_iam_role_policy_attachment" "AmazonEC2RoleforSSM" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2RoleforSSM"
+  role       = aws_iam_role.legacy_eks-worker_role.name
+}
+
+
+
 # https://docs.aws.amazon.com/eks/latest/userguide/cni-iam-role.html
 # You can attach the policy to the Amazon EKS node IAM role, or to a separate IAM role. 
 # We recommend that you assign it to a separate role.
