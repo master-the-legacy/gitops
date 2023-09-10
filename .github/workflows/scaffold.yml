@@ -17,8 +17,10 @@ on:
               description: "Chose between create or destroy the environment"
               required: true
               type: choice
+              default: create
               options:
-                - create # Only for visual, nothing really doing much :)
+                - plan-only # Only for visual, if plan only and destroy are selected, then it will plan a destroy but not apply
+                - create 
                 - destroy
                     
 env:
@@ -34,7 +36,7 @@ jobs:
   scaffold:
     uses: ./.github/workflows/terraform.yml
     with:
-      apply: ${{ github.ref_name == 'main' }}
+      apply: ${{ inputs.action != 'plan-only' }}
       destroy: ${{ inputs.action == 'destroy' }}
       fmt-check: false
       workspace: ${{ inputs.environment  }}
