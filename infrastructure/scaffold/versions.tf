@@ -21,6 +21,7 @@ provider "aws" {
     tags = {
       project = var.project
       owners  = "minders"
+      environment = terraform.workspace
     }
   }
 }

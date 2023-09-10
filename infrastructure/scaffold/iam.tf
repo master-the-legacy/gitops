@@ -12,7 +12,7 @@ data "aws_iam_policy_document" "assume_eks_role" {
 }
 
 resource "aws_iam_role" "legacy_eks_role" {
-  name               = "legacy-eks-role"
+  name               = "${terraform.workspace}-legacy-eks-role"
   assume_role_policy = data.aws_iam_policy_document.assume_eks_role.json
 }
 
@@ -45,7 +45,7 @@ data "aws_iam_policy_document" "assume_eks-worker_role" {
 }
 
 resource "aws_iam_role" "legacy_eks-worker_role" {
-  name               = "legacy-eks-worker-role"
+  name               = "${terraform.workspace}-legacy-eks-worker-role"
   assume_role_policy = data.aws_iam_policy_document.assume_eks-worker_role.json
 }
 
@@ -60,7 +60,7 @@ resource "aws_iam_role_policy_attachment" "AmazonEC2ContainerRegistryReadOnly" {
 }
 
 resource "aws_iam_role_policy_attachment" "AmazonEC2RoleforSSM" {
-  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2RoleforSSM"
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM"
   role       = aws_iam_role.legacy_eks-worker_role.name
 }
 
