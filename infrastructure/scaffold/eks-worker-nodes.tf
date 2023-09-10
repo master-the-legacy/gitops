@@ -2,7 +2,7 @@
 # If the nodes are in private subnets without NAT or internet gateway, it need to reach EKS API somehow https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html
 resource "aws_eks_node_group" "node-group-0" {
   cluster_name    = resource.aws_eks_cluster.eks.name
-  node_group_name = "master-node-group-0"
+  node_group_name = "${terraform.workspace}-master-node-group-0"
   node_role_arn   = aws_iam_role.legacy_eks-worker_role.arn
 
   # the for_each meta-arg created a map with two key-values pairs: {"us-east-1a" = {attributes of subnet-a(key:value)}, "us-east-1b" = {attributes of subnet-b(key:value)}}
@@ -34,7 +34,7 @@ resource "aws_eks_node_group" "node-group-0" {
 
 resource "aws_eks_node_group" "node-group-1" {
   cluster_name    = resource.aws_eks_cluster.eks.name
-  node_group_name = "master-node-group-1"
+  node_group_name = "${terraform.workspace}-master-node-group-1"
   node_role_arn   = aws_iam_role.legacy_eks-worker_role.arn
 
   # the for_each meta-arg created a map with two key-values pairs: {"us-east-1a" = {attributes of subnet-a(key:value)}, "us-east-1b" = {attributes of subnet-b(key:value)}}
