@@ -42,9 +42,16 @@ fix/specific-fix-name---------------/
 
 ### Infrastructure
 
-#### Scaffold pipeline
+#### Scaffold development workflow
 
-This repository contains a scaffold pipeline in order to easily create or destroy the environment.
+This repository contains a scaffold development workflow that comments the terraform plan to a Pull request whenever a new one is opened.
+
+Also it applies the infrastructure from scaffold folder once merged to `main`.
+
+> Note: The workspace/environment is hard coded as `dev`. TODO: figure out a way to promote across environments, should we plan/apply to all workspaces at once ? (we can use matrix to that)
+#### Scaffold dispatch workflow
+
+This repository contains a scaffold workflow in order to easily create or destroy the environment through a dispatcher (**manually**).
 
 To scaffold the desired environment, select the environment (dev, staging and prod) and the create option (default one). You can also select `plan-only` to plan only or `destroy` to destroy all resources in the desired environment.
 
