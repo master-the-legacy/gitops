@@ -1,4 +1,4 @@
-name: scaffold-infrastructure
+name: scaffold-dispatch
 run-name: ${{ github.actor }}
 
 on: 

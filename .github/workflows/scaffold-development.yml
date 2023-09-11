@@ -1,0 +1,32 @@
+name: scaffold-development
+run-name: ${{ github.actor }}
+
+on: 
+  pull_request:
+    paths: infrastructure/scaffold/**
+    types:
+      - "opened"
+      - "synchronize"
+      - "reopened"
+  push:
+    branches:
+      - "main"
+    paths:
+      - "infrastructure/scaffold/*"
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+
+jobs:
+  terraform-workflow:
+    uses: ./.github/workflows/terraform.yml
+    with:
+      apply: ${{ github.ref_name == 'main' }}
+      pr: ${{ github.event_name == 'pull_request' }}
+      destroy: false
+      fmt-check: ${{ github.event_name == 'pull_request' }}
+      workspace: "dev"
+      working-dir: infrastructure/scaffold
+      role-to-assume: arn:aws:iam::760772947412:role/github-actions/gh-oidc
