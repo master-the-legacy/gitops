@@ -19,8 +19,8 @@ provider "aws" {
   region = "us-east-1"
   default_tags {
     tags = {
-      project = var.project
-      owners  = "minders"
+      project     = var.project
+      owners      = "minders"
       environment = terraform.workspace
     }
   }
