@@ -25,7 +25,7 @@ resource "aws_eks_cluster" "eks" {
   }
 
   vpc_config {
-    subnet_ids              = values(local.subnet_ids) # You can't change which subnets you want to use after cluster creation.
+    subnet_ids              = data.aws_subnets.eks_subnets.ids # You can't change which subnets you want to use after cluster creation.
     endpoint_public_access  = true
     endpoint_private_access = true          # Enable EKS public API server endpoint https://docs.aws.amazon.com/eks/latest/userguide/cluster-endpoint.html
     public_access_cidrs     = ["0.0.0.0/0"] # EKS API server endpoint source IP, could be used to allow only VPN
