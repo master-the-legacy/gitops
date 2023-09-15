@@ -3,16 +3,12 @@ run-name: ${{ github.actor }}
 
 on: 
   pull_request:
-    paths: infrastructure/scaffold/**
+    paths: 
+    - infrastructure/scaffold/**
     types:
       - "opened"
       - "synchronize"
       - "reopened"
-  push:
-    branches:
-      - "main"
-    paths:
-      - "infrastructure/scaffold/*"
 
 permissions:
   id-token: write
