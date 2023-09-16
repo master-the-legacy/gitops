@@ -4,14 +4,9 @@ resource "aws_eks_node_group" "node-group-0" {
   cluster_name    = resource.aws_eks_cluster.eks.name
   node_group_name = "${terraform.workspace}-master-node-group-0"
   node_role_arn   = aws_iam_role.legacy_eks-worker_role.arn
-
-  # the for_each meta-arg created a map with two key-values pairs: {"us-east-1a" = {attributes of subnet-a(key:value)}, "us-east-1b" = {attributes of subnet-b(key:value)}}
-  # values function get a map and return a list with the values of that map. [{attributes of subnet-a(key:value)}, {attributes of subnet-b(key:value)}]
-  subnet_ids = [data.aws_subnets.eks_subnets.ids[1]]
-
-  #subnet_ids      = [key(aws_subnet.eks_subnets)[0].id]       # using key function would work also (not tested)                                              
-  capacity_type  = "SPOT"
-  instance_types = ["t3.small", "t3a.small"]
+  subnet_ids      = [data.aws_subnets.eks_subnets.ids[1]]
+  capacity_type   = "SPOT"
+  instance_types  = ["t3.small", "t3a.small"]
 
   scaling_config {
     desired_size = 1
@@ -36,14 +31,9 @@ resource "aws_eks_node_group" "node-group-1" {
   cluster_name    = resource.aws_eks_cluster.eks.name
   node_group_name = "${terraform.workspace}-master-node-group-1"
   node_role_arn   = aws_iam_role.legacy_eks-worker_role.arn
-
-  # the for_each meta-arg created a map with two key-values pairs: {"us-east-1a" = {attributes of subnet-a(key:value)}, "us-east-1b" = {attributes of subnet-b(key:value)}}
-  # values function get a map and return a list with the values of that map. [{attributes of subnet-a(key:value)}, {attributes of subnet-b(key:value)}]
-  subnet_ids = [data.aws_subnets.eks_subnets.ids[0]]
-
-  #subnet_ids      = [key(aws_subnet.eks_subnets)[1].id]       # using key function would work also (not tested)
-  capacity_type  = "SPOT"
-  instance_types = ["t3.small", "t3a.small"]
+  subnet_ids      = [data.aws_subnets.eks_subnets.ids[0]]
+  capacity_type   = "SPOT"
+  instance_types  = ["t3.small", "t3a.small"]
 
   scaling_config {
     desired_size = 1
