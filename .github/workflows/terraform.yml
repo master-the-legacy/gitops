@@ -30,7 +30,7 @@ on:
         description: "Role to assume"
         type: string
       pr:
-        required: true
+        required: false
         default: false
         description: "Whether or not comment the pull request"
         type: boolean
