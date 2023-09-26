@@ -1,9 +1,9 @@
 name: vanish
 run-name: "Destroying in case we forgot"
 on:
-  # push: # Use for testing, remove afterwards
   schedule:
-    - cron: "0 23 * * *"
+    - cron: "0 13 * * 1,5"  # Every 1PM UTC Mon-Fri
+    - cron: "0 23 * * SAT,SUN"    # Every SAT-SUN at 11PM UTC
 
 env: 
   ROLE_TO_ASSUME: arn:aws:iam::760772947412:role/github-actions/gh-oidc
