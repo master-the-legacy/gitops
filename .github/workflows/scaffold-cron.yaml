@@ -3,7 +3,7 @@ run-name: ${{ github.actor }}
 
 on:
   schedule:
-    - cron: "30 9 * * 1,5"   # Run on Weekdays at 9:30AM UTC
+    - cron: "30 9 * * 1,2,3,4,5"   # Run on Weekdays at 9:30AM UTC
 
 permissions:
   id-token: write
