@@ -1,0 +1,22 @@
+name: scaffold-cron
+run-name: ${{ github.actor }}
+
+on:
+  schedule:
+    - cron: "30 9 * * 1,5"   # Run on Weekdays at 9:30AM UTC
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  scheduled-create:
+    strategy:
+      matrix:
+        environment: ["dev"]
+    uses: ./.github/workflows/terraform.yml
+    with:
+      apply: true
+      workspace: ${{ matrix.environment }}
+      working-dir: infrastructure/scaffold
+      role-to-assume: arn:aws:iam::760772947412:role/github-actions/gh-oidc
