@@ -77,6 +77,9 @@ jobs:
         id: plan
         if: inputs.pr == false
         run: '[[ "$DESTROY" == "true" ]] && terraform plan -destroy || terraform plan -out plan.out'
+        env:
+          TF_LOG: "DEBUG"
+
       - name: Update PR
         uses: actions/github-script@v6
         id: pr
