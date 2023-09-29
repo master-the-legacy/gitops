@@ -53,6 +53,8 @@ jobs:
           role-session-name: cd
           aws-region: us-east-1
       - uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.7
       - name: terraform-fmt
         id: fmt
         if: inputs.fmt-check
