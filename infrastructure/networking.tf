@@ -14,4 +14,24 @@ resource "aws_subnet" "eks_subnets" {
   vpc_id            = aws_vpc.legacy-vpc.id
   cidr_block        = "10.0.${index(tolist(local.eks_availability_zones), each.value) + 1}.0/24"
   availability_zone = each.value # Ensure multi zones
+  map_public_ip_on_launch = true
+}
+
+# EKS Nodes need internet access to download stuff. I'll remove this later when we have all charts into Harbor, for example.
+resource "aws_internet_gateway" "gw" {
+  vpc_id = aws_vpc.legacy-vpc.id
+}
+resource "aws_route_table" "public-rt" {
+  vpc_id = aws_vpc.legacy-vpc.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.gw.id
+  }
+}
+
+resource "aws_route_table_association" "associate-rt-public" {
+  for_each = local.eks_availability_zones
+  subnet_id = aws_subnet.eks_subnets[each.value].id
+  route_table_id = aws_route_table.public-rt.id
 }
