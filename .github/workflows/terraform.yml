@@ -44,8 +44,6 @@ jobs:
     env:
       WORKSPACE: ${{ inputs.workspace }}
       DESTROY: ${{ inputs.destroy }}
-      AWS_ACCOUNT: "760772947412"
-      AWS_USER: "root"
     
     steps:
       - 
@@ -122,20 +120,3 @@ jobs:
         id: apply
         if: inputs.apply
         run: '[[ "$DESTROY" == "true" ]] && terraform destroy --auto-approve || terraform apply --auto-approve plan.out'
-      
-      - # This step will be moved to ArgoCD later. I need it now to test ArgoCD deployment 
-        name: allow aws ${{ env.AWS_USER }} user to access eks control plane
-        if: inputs.apply
-        run: |
-          [[ "$DESTROY" == "false" ]] && \
-          aws eks update-kubeconfig --name ${{ env.WORKSPACE }}-master-cluster && \
-          kubectl patch configmap/aws-auth -n kube-system --type merge -p "$(cat <<EOF
-          data:
-            mapUsers: |
-              - userarn: arn:aws:iam::${{ env.AWS_ACCOUNT }}:${{ env.AWS_USER }}
-                username: ${{ env.AWS_USER }}
-                groups:
-                  - system:masters
-          EOF
-          )"
-  

@@ -24,9 +24,11 @@ on:
                 - destroy
                     
 env:
-    # ROLE_TO_ASSUME: arn:aws:iam::760772947412:role/github-actions/gh-oidc
+    ROLE_TO_ASSUME: arn:aws:iam::760772947412:role/github-actions/gh-oidc
     AWS_REGION: us-east-1
-
+    AWS_ACCOUNT: "760772947412"
+    AWS_USER: "root"
+    WORKING-DIR: infrastructure/scaffold
 
 permissions:
     id-token: write
@@ -42,3 +44,56 @@ jobs:
       workspace: ${{ inputs.environment  }}
       working-dir: infrastructure/scaffold
       role-to-assume: arn:aws:iam::760772947412:role/github-actions/gh-oidc
+
+  post-scaffold:
+    # TOFIX: When destroying, ArgoCD destruction should run first, it is possible to have an orphan resource 
+    # when I destroy the k8s cluster first (not validated, though)
+    if: ${{ inputs.action == 'create' }} 
+    needs: [scaffold]
+    runs-on: ubuntu-latest
+    steps:
+      - 
+        uses: actions/checkout@v3
+      - 
+        name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: ${{ env.ROLE_TO_ASSUME }}
+          role-session-name: cd
+          aws-region: us-east-1
+      -
+        name: configure kubefile
+        run: aws eks update-kubeconfig --name ${{ inputs.environment }}-master-cluster
+
+      - # This step will be moved to ArgoCD later. I need it now to test ArgoCD deployment 
+        name: allow aws ${{ env.AWS_USER }} user to access eks control plane
+        run: |
+          kubectl patch configmap/aws-auth -n kube-system --type merge -p "$(cat <<EOF
+          data:
+            mapUsers: |
+              - userarn: arn:aws:iam::${{ env.AWS_ACCOUNT }}:${{ env.AWS_USER }}
+                username: ${{ env.AWS_USER }}
+                groups:
+                  - system:masters
+          EOF
+          )"
+      -
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.5.7
+
+      - # I'll improve this step if needed, but I dont want to create k8s deployments with terraform
+        name: Deploy ArgoCD into K8S
+        working-directory: ${{ env.WORKING-DIR }}/k8s-deployments
+        run: |
+          terraform init && terraform validate && terraform workspace select -or-create ${{ inputs.environment }}
+          terraform plan -out plan && terraform apply --auto-approve plan
+
+      # https://github.com/argoproj/argo-cd/blob/master/docs/faq.md#i-forgot-the-admin-password-how-do-i-reset-it
+      -
+        name: Update ArgoCD Admin Password
+        run: |
+          kubectl -n argocd patch secret argocd-secret -p '{"stringData": {"admin.password": "${{ secrets.ARGOCD_ADMIN_PASSWORD }}", "admin.passwordMtime": "'$(date +%FT%T%Z)'"}}'
+      -
+        name: Output AWS LB FQDN (URL to access ArgoCD)
+        run: kubectl get svc -n argocd | grep "argocd-server" | awk '{print $4}'
