@@ -12,7 +12,6 @@ terraform {
     key    = "tf-states/infrastructure/scaffold/terraform.tfstate"
     region = "us-east-1"
   }
-
 }
 
 provider "aws" {
