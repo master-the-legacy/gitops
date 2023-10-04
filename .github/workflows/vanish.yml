@@ -16,8 +16,9 @@ permissions:
 jobs:
   scheduled-destroy:
     strategy:
+      
       matrix:
-        environment: ["dev", "staging", "prod"]
+        environment: ["dev"]    # https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs#handling-failures
     uses: ./.github/workflows/terraform.yml
     with:
       apply: true
