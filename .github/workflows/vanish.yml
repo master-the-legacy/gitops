@@ -1,22 +1,32 @@
 name: vanish
-run-name: "Destroying in case we forgot"
+run-name: "Destroying scaffold infra"
 on:
   schedule:
     - cron: "0 13 * * 1,2,3,4,5"  # Every 1PM UTC Mon-Fri
     - cron: "0 23 * * SAT,SUN"    # Every SAT-SUN at 11PM UTC
-
-env: 
-  ROLE_TO_ASSUME: arn:aws:iam::760772947412:role/github-actions/gh-oidc
-  AWS_REGION: us-east-1
+  workflow_dispatch:
 
 permissions:
   id-token: write
   contents: read
 
 jobs:
-  scheduled-destroy:
-    strategy:
-      
+  destroy-k8s-deployments:
+    strategy:      
+      matrix:
+        environment: ["dev"]    # https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs#handling-failures
+    uses: ./.github/workflows/terraform.yml
+    with:
+      apply: true
+      destroy: true
+      fmt-check: false
+      workspace: ${{ matrix.environment }}
+      working-dir: infrastructure/scaffold/k8s-deployments
+      role-to-assume: arn:aws:iam::760772947412:role/github-actions/gh-oidc
+
+  destroy-scaffold:
+    needs: [destroy-k8s-deployments]
+    strategy:      
       matrix:
         environment: ["dev"]    # https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs#handling-failures
     uses: ./.github/workflows/terraform.yml
