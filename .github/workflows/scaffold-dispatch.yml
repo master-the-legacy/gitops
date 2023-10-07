@@ -1,5 +1,4 @@
 name: scaffold-dispatch
-run-name: ${{ github.actor }}
 
 on: 
     workflow_dispatch:
@@ -22,13 +21,23 @@ on:
                 - plan-only # Only for visual, if plan only and destroy are selected, then it will plan a destroy but not apply
                 - create 
                 - destroy
+            role-to-assume:
+              description: "AWS IAM role to GH runner assume"
+              type: string
+              default: arn:aws:iam::760772947412:role/github-actions/gh-oidc
+            scaffold-folder:
+              description: "folder which contains tf manifest to create scaffold infra"
+              type: string
+              default: infrastructure/scaffold
+            k8s-deployments-folder:
+              description: "folder containing k8s manifests"
+              type: string
+              default: infrastructure/scaffold/k8s-deployments
                     
 env:
-    ROLE_TO_ASSUME: arn:aws:iam::760772947412:role/github-actions/gh-oidc
     AWS_REGION: us-east-1
     AWS_ACCOUNT: "760772947412"
     AWS_USER: "root"
-    WORKING-DIR: infrastructure/scaffold
 
 permissions:
     id-token: write
@@ -42,12 +51,10 @@ jobs:
       destroy: ${{ inputs.action == 'destroy' }}
       fmt-check: false
       workspace: ${{ inputs.environment  }}
-      working-dir: infrastructure/scaffold
-      role-to-assume: arn:aws:iam::760772947412:role/github-actions/gh-oidc
+      working-dir: ${{ inputs.scaffold-folder }}
+      role-to-assume: ${{ inputs.role-to-assume }}
 
   post-scaffold:
-    # TOFIX: When destroying, ArgoCD destruction should run first, it is possible to have an orphan resource 
-    # when I destroy the k8s cluster first (not validated, though)
     if: ${{ inputs.action == 'create' }} 
     needs: [scaffold]
     runs-on: ubuntu-latest
@@ -58,9 +65,9 @@ jobs:
         name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v3
         with:
-          role-to-assume: ${{ env.ROLE_TO_ASSUME }}
+          role-to-assume: ${{ inputs.role-to-assume }}
           role-session-name: cd
-          aws-region: us-east-1
+          aws-region: ${{ env.AWS_REGION }}
       -
         name: configure kubefile
         run: aws eks update-kubeconfig --name ${{ inputs.environment }}-master-cluster
@@ -84,7 +91,7 @@ jobs:
 
       - # I'll improve this step if needed, but I dont want to create k8s deployments with terraform
         name: Deploy ArgoCD into K8S
-        working-directory: ${{ env.WORKING-DIR }}/k8s-deployments
+        working-directory: ${{ inputs.k8s-deployments-folder }}
         run: |
           terraform init && terraform validate && terraform workspace select -or-create ${{ inputs.environment }}
           terraform plan -out plan && terraform apply --auto-approve plan
@@ -95,5 +102,5 @@ jobs:
         run: |
           kubectl -n argocd patch secret argocd-secret -p '{"stringData": {"admin.password": "${{ secrets.ARGOCD_ADMIN_PASSWORD }}", "admin.passwordMtime": "'$(date +%FT%T%Z)'"}}'
       -
-        name: Output AWS LB FQDN (URL to access ArgoCD)
+        name: output URL to access ArgoCD
         run: kubectl get svc -n argocd | grep "argocd-server" | awk '{print $4}'
