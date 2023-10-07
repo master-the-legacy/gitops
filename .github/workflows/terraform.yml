@@ -59,6 +59,10 @@ jobs:
         uses: hashicorp/setup-terraform@v2
         with:
           terraform_version: 1.5.7
+      -
+        name: Create kubefile # Need access to k8s to destroy k8s deployments before destroying the cluster
+        if: inputs.destroy
+        run: aws eks update-kubeconfig --name ${{ env.WORKSPACE }}-master-cluster
       - 
         name: terraform-fmt
         id: fmt
