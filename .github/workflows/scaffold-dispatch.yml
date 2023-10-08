@@ -19,8 +19,7 @@ on:
               default: create
               options:
                 - plan-only # Only for visual, if plan only and destroy are selected, then it will plan a destroy but not apply
-                - create 
-                - destroy
+                - create
             role-to-assume:
               description: "AWS IAM role to GH runner assume"
               type: string
@@ -47,8 +46,7 @@ jobs:
   scaffold:
     uses: ./.github/workflows/terraform.yml
     with:
-      apply: ${{ inputs.action != 'plan-only' }}
-      destroy: ${{ inputs.action == 'destroy' }}
+      apply: ${{ inputs.action == 'create' }}
       fmt-check: false
       workspace: ${{ inputs.environment  }}
       working-dir: ${{ inputs.scaffold-folder }}
